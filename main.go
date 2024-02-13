@@ -16,7 +16,7 @@ import (
 
 var (
 	db     *gorm.DB
-	dbName = "firstdb"
+	dbName = "firstdb1"
 )
 
 func initDB() {
@@ -42,7 +42,8 @@ func initDB() {
 	err5 := db.AutoMigrate(&handlers.Search{})
 	err6 := db.AutoMigrate(&handlers.PostView{})
 	err7 := db.AutoMigrate(&handlers.EngagementMetrics{})
-	if err != nil && err1 != nil && err2 != nil && err3 != nil && err4 != nil && err5 != nil && err6 != nil && err7 != nil {
+	err8:=db.AutoMigrate(&handlers.Company{})
+	if err != nil && err1 != nil && err2 != nil && err3 != nil && err4 != nil && err5 != nil && err6 != nil && err7 != nil && err8 != nil {
 		log.Fatal("Error auto-migrating database:", err)
 	}
 
@@ -60,13 +61,21 @@ func main() {
 	initDB()
 
 	router := gin.Default()
-	// Register routes
+	// user routes
 	router.POST("/register", func(c *gin.Context) {
 		handlers.Register(c, db)
 	})
 	router.POST("/login", func(c *gin.Context) {
 		handlers.Login(c, db)
 	})
+	router.GET("/profile", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.Profile(c, db)
+	})
+
+	router.PUT("/update-profile", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.UpdateProfile(c, db)
+	})
+	//Router of post
 	router.POST("/create-post", handlers.AuthMiddleware(), func(c *gin.Context) {
 		handlers.CreatePost(c, db)
 	})
@@ -74,12 +83,10 @@ func main() {
 	router.PUT("/edit-post/:postId", handlers.AuthMiddleware(), func(c *gin.Context) {
 		handlers.EditPost(c, db)
 	})
-	router.GET("/profile", handlers.AuthMiddleware(), func(c *gin.Context) {
-		handlers.Profile(c, db)
-	})
 	router.DELETE("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.DeletePost(c, db) })
 	router.GET("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetPostByID(c, db) })
 	router.GET("/posts", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetAllPosts(c, db) })
+	//Engagement router
 	router.POST("/engagements", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.CreateEngagement(c, db) })
 	router.PUT("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.UpdateEngagement(c, db) })
 	router.DELETE("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.DeleteEngagement(c, db) })
@@ -125,6 +132,19 @@ func main() {
 	// File upload endpoints
 	router.POST("/upload", handlers.UploadFile)
 	router.GET("/files", handlers.GetUploadedFiles)
+	//company router
+	router.POST("/create-company", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.CreateCompany(c, db)
+	})
+	router.GET("/companies/:companyId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetCompanyByID(c, db)
+	})
+	router.PUT("/companies/:companyId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.UpdateCompany(c, db)
+	})
+	router.DELETE("/companies/:companyId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.DeleteCompany(c, db)
+	})
 	// Debugging route
 	router.GET("/debug/routes", func(c *gin.Context) {
 		fmt.Println("yes")

@@ -14,9 +14,11 @@ import (
 var secretKey = "Z23adN12*"
 
 type User struct {
-	ID       int    `json:"id,omitempty" db:"id"`
-	Username string `json:"username,omitempty" db:"username"`
-	Password string `json:"password,omitempty" db:"password"`
+	ID        int    `json:"id,omitempty" db:"id"`
+	Username  string `json:"username,omitempty" db:"username"`
+	Password  string `json:"password,omitempty" db:"password"`
+	CompanyID *int   `json:"companyId,omitempty" db:"company_id"`
+	Role      string `json:"role,omitempty" db:"role"`
 }
 
 func Register(c *gin.Context, db *gorm.DB) {
@@ -38,6 +40,9 @@ func Register(c *gin.Context, db *gorm.DB) {
 	}
 
 	user.Password = string(hashedPassword)
+
+	// Assign default role during registration
+	user.Role = "user"
 
 	// Check for errors during query execution
 	err = db.Create(&user).Error
@@ -115,6 +120,48 @@ func Profile(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user_id": userID})
+}
+
+func UpdateProfile(c *gin.Context, db *gorm.DB) {
+	userID, _ := c.Get("user_id")
+	var user User
+	if err := db.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var updatedUser User
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Update user fields
+	if updatedUser.Username != "" {
+		user.Username = updatedUser.Username
+	}
+	if updatedUser.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		user.Password = string(hashedPassword)
+	}
+	if updatedUser.Role != "" {
+		user.Role = updatedUser.Role
+	}
+	if updatedUser.CompanyID != nil {
+		user.CompanyID = updatedUser.CompanyID
+	}
+	// Update other fields as needed
+
+	if err := db.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func AuthMiddleware() gin.HandlerFunc {

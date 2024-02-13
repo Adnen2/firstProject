@@ -17,14 +17,14 @@ import (
 )
 
 func setupTestDB() *gorm.DB {
-	dsn := "host=localhost user=admin password=admin dbname=firstdb port=5432 sslmode=disable"
+	dsn := "host=localhost user=admin password=admin dbname=firstdb1 port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to the database: " + err.Error())
 	}
 
 	err = db.AutoMigrate(&handlers.User{})
-	if err != nil{
+	if err != nil {
 		panic("Failed to run migrations: " + err.Error())
 	}
 
