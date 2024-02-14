@@ -35,15 +35,25 @@ func initDB() {
 
 	// Auto-migrate the User model
 	err = db.AutoMigrate(&handlers.User{})
+	// Auto-migrate the Post model
 	err1 := db.AutoMigrate(&handlers.Post{})
+	// Auto-migrate the Engagement model
 	err2 := db.AutoMigrate(&handlers.Engagement{})
+	// Auto-migrate the Notification model
 	err3 := db.AutoMigrate(&handlers.Notification{})
+	// Auto-migrate the Follow model
 	err4 := db.AutoMigrate(&handlers.Follow{})
+	// Auto-migrate the Search model
 	err5 := db.AutoMigrate(&handlers.Search{})
+	// Auto-migrate the PostView model
 	err6 := db.AutoMigrate(&handlers.PostView{})
+	// Auto-migrate the EngagementMetrics model
 	err7 := db.AutoMigrate(&handlers.EngagementMetrics{})
-	err8:=db.AutoMigrate(&handlers.Company{})
-	if err != nil && err1 != nil && err2 != nil && err3 != nil && err4 != nil && err5 != nil && err6 != nil && err7 != nil && err8 != nil {
+	// Auto-migrate the Company model
+	err8 := db.AutoMigrate(&handlers.Company{})
+	// Auto-migrate the Role model
+	err9 := db.AutoMigrate(&handlers.Role{})
+	if err != nil && err1 != nil && err2 != nil && err3 != nil && err4 != nil && err5 != nil && err6 != nil && err7 != nil && err8 != nil && err9 != nil {
 		log.Fatal("Error auto-migrating database:", err)
 	}
 
@@ -83,18 +93,38 @@ func main() {
 	router.PUT("/edit-post/:postId", handlers.AuthMiddleware(), func(c *gin.Context) {
 		handlers.EditPost(c, db)
 	})
-	router.DELETE("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.DeletePost(c, db) })
-	router.GET("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetPostByID(c, db) })
-	router.GET("/posts", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetAllPosts(c, db) })
+	router.DELETE("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.DeletePost(c, db)
+	})
+	router.GET("/posts/:postId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetPostByID(c, db)
+	})
+	router.GET("/posts", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetAllPosts(c, db)
+	})
 	//Engagement router
-	router.POST("/engagements", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.CreateEngagement(c, db) })
-	router.PUT("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.UpdateEngagement(c, db) })
-	router.DELETE("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.DeleteEngagement(c, db) })
-	router.GET("/engagements/:postId", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetEngagementsForPost(c, db) })
+	router.POST("/engagements", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.CreateEngagement(c, db)
+	})
+	router.PUT("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.UpdateEngagement(c, db)
+	})
+	router.DELETE("/engagements/:engagementId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.DeleteEngagement(c, db)
+	})
+	router.GET("/engagements/:postId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetEngagementsForPost(c, db)
+	})
 	// Notification routes
-	router.POST("/notifications", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.CreateNotification(c, db) })
-	router.GET("/notifications", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.GetNotifications(c, db) })
-	router.PATCH("/notifications/:notificationId/read", handlers.AuthMiddleware(), func(c *gin.Context) { handlers.MarkNotificationAsRead(c, db) })
+	router.POST("/notifications", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.CreateNotification(c, db)
+	})
+	router.GET("/notifications", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetNotifications(c, db)
+	})
+	router.PATCH("/notifications/:notificationId/read", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.MarkNotificationAsRead(c, db)
+	})
 	// Follow/Unfollow routes
 	router.POST("/follow", handlers.AuthMiddleware(), func(c *gin.Context) {
 		handlers.FollowUser(c, db)
@@ -144,6 +174,26 @@ func main() {
 	})
 	router.DELETE("/companies/:companyId", handlers.AuthMiddleware(), func(c *gin.Context) {
 		handlers.DeleteCompany(c, db)
+	})
+	// Role routes
+	router.POST("/roles", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.CreateRole(c, db)
+	})
+
+	router.PUT("/roles/:roleId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.EditRole(c, db)
+	})
+
+	router.DELETE("/roles/:roleId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.DeleteRole(c, db)
+	})
+
+	router.GET("/roles", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetAllRoles(c, db)
+	})
+
+	router.GET("/roles/:roleId", handlers.AuthMiddleware(), func(c *gin.Context) {
+		handlers.GetRoleByID(c, db)
 	})
 	// Debugging route
 	router.GET("/debug/routes", func(c *gin.Context) {

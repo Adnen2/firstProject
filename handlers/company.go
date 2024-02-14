@@ -38,7 +38,6 @@ func GetCompanyByID(c *gin.Context, db *gorm.DB) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Company not found"})
 		return
 	}
-
 	c.JSON(http.StatusOK, company)
 }
 
